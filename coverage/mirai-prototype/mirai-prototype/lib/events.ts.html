@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">96.15% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>50/50</span>
+                <span class='fraction'>50/52</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">70.73% </span>
+                <span class="strong">72.09% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>29/41</span>
+                <span class='fraction'>31/43</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">93.33% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>14/14</span>
+                <span class='fraction'>14/15</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">96.07% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>49/49</span>
+                <span class='fraction'>49/51</span>
             </div>
         
             
@@ -263,7 +263,15 @@
 <a name='L198'></a><a href='#L198'>198</a>
 <a name='L199'></a><a href='#L199'>199</a>
 <a name='L200'></a><a href='#L200'>200</a>
-<a name='L201'></a><a href='#L201'>201</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L201'></a><a href='#L201'>201</a>
+<a name='L202'></a><a href='#L202'>202</a>
+<a name='L203'></a><a href='#L203'>203</a>
+<a name='L204'></a><a href='#L204'>204</a>
+<a name='L205'></a><a href='#L205'>205</a>
+<a name='L206'></a><a href='#L206'>206</a>
+<a name='L207'></a><a href='#L207'>207</a>
+<a name='L208'></a><a href='#L208'>208</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -380,6 +388,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -436,6 +445,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -474,6 +488,7 @@ export interface Event {
   price_type: 'free' | 'paid';
   price: number;
   capacity: number;
+  max_tickets_per_user: number;
   start_date: string;
   end_date: string;
   location: string | null;
@@ -560,9 +575,9 @@ export function getEventBySlug(slug: string): Event | undefined {
 export function createEvent(data: Partial&lt;Event&gt;): Event {
   const stmt = db.prepare(`
     INSERT INTO events (
-      title, slug, description, type, price_type, price, capacity, start_date, end_date, location, status
+      title, slug, description, type, price_type, price, capacity, max_tickets_per_user, start_date, end_date, location, status
     ) VALUES (
-      @title, @slug, @description, @type, @price_type, @price, @capacity, @start_date, @end_date, @location, @status
+      @title, @slug, @description, @type, @price_type, @price, @capacity, @max_tickets_per_user, @start_date, @end_date, @location, @status
     )
   `);
   
@@ -574,6 +589,7 @@ export function createEvent(data: Partial&lt;Event&gt;): Event {
     price_type: data.price_type || <span class="branch-1 cbranch-no" title="branch not covered" >'free',</span>
     price: data.price || 0,
     capacity: data.capacity || <span class="branch-1 cbranch-no" title="branch not covered" >0,</span>
+    max_tickets_per_user: data.max_tickets_per_user || 1,
     start_date: data.start_date,
     end_date: data.end_date,
     location: data.location || <span class="branch-1 cbranch-no" title="branch not covered" >null,</span>
@@ -635,7 +651,12 @@ export function getTicketByCode(code: string): EventTicket | undefined {
 }
 &nbsp;
 export function getUserTicketForEvent(userId: number, eventId: number): EventTicket | undefined {
-  return db.prepare(`SELECT * FROM event_tickets WHERE user_id = ? AND event_id = ? AND status != 'cancelled'`).get(userId, eventId) as EventTicket | undefined;
+  return db.prepare(`SELECT * FROM event_tickets WHERE user_id = ? AND event_id = ? AND status != 'cancelled' LIMIT 1`).get(userId, eventId) as EventTicket | undefined;
+}
+&nbsp;
+export function <span class="fstat-no" title="function not covered" >getUserTicketCountForEvent(u</span>serId: number, eventId: number): number {
+  const result = <span class="cstat-no" title="statement not covered" >db.prepare(`SELECT count(*) as count FROM event_tickets WHERE user_id = ? AND event_id = ? AND status != 'cancelled'`).get(userId, eventId) as { count: number };</span>
+<span class="cstat-no" title="statement not covered" >  return result.count;</span>
 }
 &nbsp;
 export function getEventRegistrationCount(eventId: number): number {
@@ -670,7 +691,7 @@ export function updateTicketStatus(id: number, status: string, paymentId?: strin
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-23T11:19:59.568Z
+                at 2026-08-24T14:13:49.753Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>
